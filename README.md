@@ -7,40 +7,28 @@
 - ⚡ Fun fact: ...
 
 <!---
-atc47yhfrr/atc47yhfrr is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
--- FPSCamera (LocalScript in StarterPlayerScripts)
+atc47yhfrr/atc47yhfrr is a ✨ special ✨ repository because its `READ-- GunClient (LocalScript inside the Gun Tool)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local tool = script.Parent
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
-local head = character:WaitForChild("Head")
+local mouse = player:GetMouse()
 
-local camera = workspace.CurrentCamera
-camera.FieldOfView = 70 -- Adjust for a more immersive FPS feel
+-- Create a RemoteEvent to communicate with the server
+local shootEvent = Instance.new("RemoteEvent")
+shootEvent.Name = "ShootEvent"
+shootEvent.Parent = ReplicatedStorage
 
--- Lock the camera to first-person
-local function updateCamera()
-    if character and humanoid and humanoid.Health > 0 then
-        camera.CameraType = Enum.CameraType.Custom
-        camera.CameraSubject = head
-        camera.CFrame = CFrame.new(head.Position) * CFrame.Angles(0, 0, 0)
-        UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-    end
-end
-
--- Update the camera every frame
-RunService.RenderStepped:Connect(updateCamera)
-
--- Handle character respawn
-player.CharacterAdded:Connect(function(newCharacter)
-    character = newCharacter
-    humanoid = character:WaitForChild("Humanoid")
-    rootPart = character:WaitForChild("HumanoidRootPart")
-    head = character:WaitForChild("Head")
+-- Handle shooting when the player clicks
+tool.Equipped:Connect(function()
+    UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not gameProcessedEvent then
+            -- Get the mouse's target position
+            local targetPoint = mouse.Hit.Position
+            -- Fire the RemoteEvent to the server
+            shootEvent:FireServer(targetPoint)
+        end
+    end)
 end)
